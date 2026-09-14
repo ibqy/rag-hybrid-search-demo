@@ -1,0 +1,30 @@
+# 测试环境配置 —— 禁用所有外部依赖
+spring:
+  ai:
+    openai:
+      api-key: test-key
+      base-url: http://localhost:9999
+      embedding:
+        options:
+          model: text-embedding-3-small
+  data:
+    redis:
+      active: false
+  r2dbc:
+    enabled: false
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+    listener:
+      auto-startup: false  # 测试不启动 Kafka 监听
+
+# 禁用向量库和 ES 的真实连接
+vectorstore:
+  type: test
+
+elasticsearch:
+  uris: http://localhost:9999
+  enabled: false
+
+retrieval:
+  rerank-url: http://localhost:9999/rerank
