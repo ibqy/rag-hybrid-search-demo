@@ -1,0 +1,63 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: rag-hybrid-search-demo
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          temperature: 0.3
+      embedding:
+        options:
+          model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 5000
+
+  r2dbc:
+    url: ${PG_R2DBC_URL:r2dbc:postgresql://localhost:5432/rag_demo}
+    username: ${PG_USER:postgres}
+    password: ${PG_PASSWORD:postgres}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+    consumer:
+      group-id: rag-doc-processor
+      auto-offset-reset: earliest
+
+# ======== 向量库选型：pgvector / milvus ========
+vectorstore:
+  type: ${VECTOR_STORE_TYPE:pgvector}
+
+milvus:
+  host: ${MILVUS_HOST:localhost}
+  port: ${MILVUS_PORT:19530}
+  collection: rag_docs
+
+# ======== Elasticsearch 配置 ========
+elasticsearch:
+  uris: ${ES_URIS:http://localhost:9200}
+  index: rag_docs
+
+# ======== 检索调参 ========
+retrieval:
+  vector-top-k: 20
+  bm25-top-k: 20
+  final-top-k: 8
+  score-threshold: 0.45
+  rerank-model: BAAI/bge-reranker-v2-m3
+  rerank-url: ${RERANK_URL:http://localhost:8000/rerank}
+
+# ======== 日志 ========
+logging:
+  level:
+    com.xb.rag: DEBUG
