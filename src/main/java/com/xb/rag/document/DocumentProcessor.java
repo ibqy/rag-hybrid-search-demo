@@ -3,6 +3,7 @@ package com.xb.rag.document;
 import com.xb.rag.document.cleaner.DocCleaner;
 import com.xb.rag.document.parser.DocumentParser;
 
+import java.io.ByteArrayInputStream;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -98,6 +99,63 @@ public class DocumentProcessor {
         }
 
         return new ParseResult(meta, cleanedSegments, true);
+    }
+
+    /**
+     * 处理文档（基于字节数组）—— Controller 上传接口使用
+     *
+     * @param fileName 文件名（用于识别类型）
+     * @param content  文件字节内容
+     * @param meta     预填的元数据（docId, tenantId等）
+     * @return ParseResult
+     */
+    public ParseResult process(String fileName, byte[] content, DocumentMeta meta) {
+        // 1. 识别文档类型
+        DocType docType = detectFileType(fileName);
+        if (docType == DocType.UNKNOWN) {
+            return new ParseResult(meta, List.of(), false, "不支持的文件类型: " + fileName);
+        }
+        meta.setFileType(docType);
+
+        // 2. 查找解析器
+        DocumentParser parser = findParser(docType);
+        if (parser == null) {
+            return new ParseResult(meta, List.of(), false, "未找到解析器: " + docType);
+        }
+
+        // 3. 解析
+        ParseResult result;
+        try (InputStream input = new ByteArrayInputStream(content)) {
+            result = parser.parse(input, fileName, Map.of());
+        } catch (IOException e) {
+            return new ParseResult(meta, List.of(), false, "解析失败: " + e.getMessage());
+        }
+
+        if (!result.isSuccess()) {
+            return result;
+        }
+
+        // 4. 填充元信息
+        DocumentMeta resultMeta = result.getDocMeta();
+        resultMeta.setDocId(meta.getDocId());
+        resultMeta.setDocName(meta.getDocName());
+        resultMeta.setSourcePath(meta.getSourcePath());
+        resultMeta.setTenantId(meta.getTenantId());
+        resultMeta.setMd5(meta.getMd5());
+        resultMeta.setFileSize(content.length);
+
+        // 5. 清洗每个切片
+        List<DocSegment> cleaned = new ArrayList<>();
+        for (DocSegment seg : result.getSegments()) {
+            seg.setDocId(meta.getDocId());
+            String cleanedText = DocCleaner.clean(seg.getContent());
+            seg.setContent(cleanedText);
+            if (!cleanedText.isBlank()) {
+                cleaned.add(seg);
+            }
+        }
+
+        return new ParseResult(resultMeta, cleaned, true);
     }
 
     // 根据扩展名映射 DocType

@@ -1,6 +1,7 @@
 package com.xb.rag.chunking;
 
 import com.xb.rag.document.DocSegment;
+import com.xb.rag.document.ParseResult;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,20 @@ public class ChunkingOrchestrator {
             }
         }
         return valid;
+    }
+
+    /**
+     * 对 ParseResult 执行分块（Controller 便利方法）
+     *
+     * @param parseResult 文档解析结果
+     * @param config      分块配置
+     * @return 校验通过的分块列表
+     */
+    public List<Chunk> chunk(ParseResult parseResult, ChunkConfig config) {
+        if (parseResult == null) {
+            return new ArrayList<>();
+        }
+        return chunk(parseResult.getSegments(), config);
     }
 
     /**

@@ -33,6 +33,16 @@ spring:
     consumer:
       group-id: rag-doc-processor
       auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.xb.rag.document.sync
+        spring.json.type.mapping: docSyncMessage:com.xb.rag.document.sync.DocSyncMessage
+
+# ======== Kafka Topic ========
+kafka:
+  topic:
+    doc-sync: rag-doc-sync
 
 # ======== 向量库选型：pgvector / milvus ========
 vectorstore:
