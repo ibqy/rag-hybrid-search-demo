@@ -63,13 +63,13 @@ public class DocController {
             if (fileName == null) fileName = "unknown";
 
             // 2. 构造元数据
-            DocumentMeta meta = new DocumentMeta()
-                    .setDocId(UUID.randomUUID().toString())
-                    .setDocName(fileName)
-                    .setSourcePath(fileName)
-                    .setTenantId(tenantId)
-                    .setUpdatedAt(LocalDateTime.now())
-                    .setMd5(changeWatcher.computeMd5(bytes));
+            DocumentMeta meta = new DocumentMeta();
+            meta.setDocId(UUID.randomUUID().toString());
+            meta.setDocName(fileName);
+            meta.setSourcePath(fileName);
+            meta.setTenantId(tenantId);
+            meta.setUpdatedAt(LocalDateTime.now().toString());
+            meta.setMd5(changeWatcher.computeMd5(bytes));
 
             // 3. 解析文档
             ParseResult parseResult = documentProcessor.process(fileName, bytes, meta);
@@ -97,12 +97,12 @@ public class DocController {
 
             String newMd5 = changeWatcher.computeMd5(bytes);
 
-            DocumentMeta meta = new DocumentMeta()
-                    .setDocId(docId)
-                    .setDocName(fileName)
-                    .setTenantId(tenantId)
-                    .setUpdatedAt(LocalDateTime.now())
-                    .setMd5(newMd5);
+            DocumentMeta meta = new DocumentMeta();
+            meta.setDocId(docId);
+            meta.setDocName(fileName);
+            meta.setTenantId(tenantId);
+            meta.setUpdatedAt(LocalDateTime.now().toString());
+            meta.setMd5(newMd5);
 
             ParseResult parseResult = documentProcessor.process(fileName, bytes, meta);
             List<Chunk> chunks = chunkingOrchestrator.chunk(parseResult, chunkConfig);

@@ -1,24 +1,18 @@
 package com.xb.rag.retrieval;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.stereotype.Component;
 
 /**
  * RRF（Reciprocal Rank Fusion）融合器
  *
- * 将向量检索和 BM25 检索的结果按倒数排序融合算法合并，
- * 公式：score = 1 / (k + rank)，其中 rank 是各结果在原始列表中的排序位置，
- * k 为平滑常数（默认 60）。
+ * 公式：score = Σ 1 / (k + position)，position 为各路线列表中的 1-based 下标，
+ * k 为平滑常数（默认 60）。同一路线中同一 chunkId 仅首次出现计分。
  */
 @Component
 public class RrfFusion {
 
-    /** 默认的平滑常数 */
     private static final int DEFAULT_K = 60;
 
     private final int k;
@@ -28,60 +22,67 @@ public class RrfFusion {
     }
 
     public RrfFusion(int k) {
+        if (k <= 0) {
+            throw new IllegalArgumentException("rank constant k must be > 0, got " + k);
+        }
         this.k = k;
     }
 
-    /**
-     * 对向量结果和 BM25 结果执行 RRF 融合
-     *
-     * @param vectorResults 向量检索结果（需已按相关性排序且 rank 已设置）
-     * @param bm25Results   BM25 检索结果（需已按相关性排序且 rank 已设置）
-     * @param finalTopK     最终返回的结果数
-     * @return 融合后重排序的 SearchResult 列表
-     */
     public List<SearchResult> fuse(List<SearchResult> vectorResults,
                                    List<SearchResult> bm25Results,
                                    int finalTopK) {
-        // 以 chunkId 为 key 累积 RRF 得分
-        Map<String, SearchResult> merged = new HashMap<>();
-
-        // 处理向量检索结果
-        for (SearchResult sr : vectorResults) {
-            double rrfScore = 1.0 / (k + sr.getRank());
-            sr.setScore(rrfScore);
-            sr.setSource("fusion");
-            merged.put(sr.getChunkId(), sr);
+        if (finalTopK <= 0) {
+            throw new IllegalArgumentException("finalTopK must be > 0, got " + finalTopK);
         }
 
-        // 处理 BM25 结果：已有 chunkId 取较高分，没有则新增
-        for (SearchResult sr : bm25Results) {
-            double rrfScore = 1.0 / (k + sr.getRank());
-            String cid = sr.getChunkId();
-            SearchResult existing = merged.get(cid);
-            if (existing != null) {
-                // 保留更高的 RRF 得分
-                if (rrfScore > existing.getScore()) {
-                    existing.setScore(rrfScore);
-                }
-            } else {
-                sr.setScore(rrfScore);
-                sr.setSource("fusion");
-                merged.put(cid, sr);
-            }
-        }
+        Map<String, Double> scores = new HashMap<>();
+        Map<String, SearchResult> prototypes = new HashMap<>();
 
-        // 按 RRF 得分降序排列
-        List<SearchResult> fused = new ArrayList<>(merged.values());
-        fused.sort(Comparator.comparingDouble(SearchResult::getScore).reversed());
+        accumulate(vectorResults, scores, prototypes);
+        accumulate(bm25Results, scores, prototypes);
 
-        // 重设 rank 并截取 topK
+        List<Map.Entry<String, Double>> ranked = new ArrayList<>(scores.entrySet());
+        ranked.sort(Comparator.<Map.Entry<String, Double>, Double>comparing(Map.Entry::getValue).reversed()
+                .thenComparing(Map.Entry::getKey));
+
+        List<SearchResult> top = new ArrayList<>(Math.min(finalTopK, ranked.size()));
         int rank = 1;
-        List<SearchResult> top = new ArrayList<>(Math.min(finalTopK, fused.size()));
-        for (SearchResult sr : fused) {
+        for (var entry : ranked) {
             if (rank > finalTopK) break;
-            sr.setRank(rank++);
-            top.add(sr);
+            SearchResult copy = copyOf(entry.getKey(), prototypes.get(entry.getKey()));
+            copy.setScore(entry.getValue());
+            copy.setSource("fusion");
+            copy.setRank(rank++);
+            top.add(copy);
         }
         return top;
+    }
+
+    private void accumulate(List<SearchResult> route,
+                            Map<String, Double> scores,
+                            Map<String, SearchResult> prototypes) {
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < route.size(); i++) {
+            SearchResult sr = route.get(i);
+            String cid = sr.getChunkId();
+            if (!seen.add(cid)) continue;
+            double rrf = 1.0 / (k + (i + 1));
+            scores.merge(cid, rrf, Double::sum);
+            prototypes.putIfAbsent(cid, sr);
+        }
+    }
+
+    private SearchResult copyOf(String chunkId, SearchResult src) {
+        SearchResult copy = new SearchResult(chunkId, src.getDocId(), src.getContent());
+        copy.setDocName(src.getDocName());
+        copy.setSectionTitle(src.getSectionTitle());
+        copy.setPageNum(src.getPageNum());
+        copy.setRank(src.getRank());
+        copy.setScore(src.getScore());
+        copy.setSource(src.getSource());
+        if (src.getMetadata() != null) {
+            copy.setMetadata(new HashMap<>(src.getMetadata()));
+        }
+        return copy;
     }
 }

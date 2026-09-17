@@ -48,7 +48,7 @@ public class VectorRetriever {
             builder.filterExpression(filterExpr);
         }
 
-        List<Document> docs = vectorStore.search(builder.build());
+        List<Document> docs = vectorStore.similaritySearch(builder.build());
         return convertResults(docs);
     }
 
@@ -82,7 +82,7 @@ public class VectorRetriever {
             Document doc = docs.get(i);
             Map<String, Object> meta = doc.getMetadata();
 
-            SearchResult sr = new SearchResult(doc.getId(), strMeta(meta, "docId"), doc.getContent())
+            SearchResult sr = new SearchResult(doc.getId(), strMeta(meta, "docId"), doc.getText())
                     .setSectionTitle(strMeta(meta, "sectionTitle"))
                     .setPageNum(intMeta(meta, "pageNum"))
                     .setScore(extractScore(doc))
@@ -98,9 +98,8 @@ public class VectorRetriever {
      * 从 Document 的 score 属性取值（Spring AI 在搜索结果中会填充 score）
      */
     private double extractScore(Document doc) {
-        // Document.getScore() 返回 Float，可能为 null
-        Float score = doc.getScore();
-        return score != null ? score.doubleValue() : 0.0;
+        Double score = doc.getScore();
+        return score != null ? score : 0.0;
     }
 
     private static String strMeta(Map<String, Object> meta, String key) {

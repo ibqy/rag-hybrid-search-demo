@@ -2,8 +2,8 @@ package com.xb.rag.hallucination;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.ChatModel;
-import org.springframework.ai.chat.ChatResponse;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.stereotype.Service;
@@ -49,7 +49,7 @@ public class HallucinationDetector {
 
         try {
             ChatResponse response = chatModel.call(prompt);
-            String llmOutput = response.getResult().getOutput().getContent();
+            String llmOutput = response.getResult().getOutput().getText();
             return parseVerificationResult(llmOutput);
         } catch (Exception e) {
             log.error("调用 LLM 进行幻觉检测失败: {}", e.getMessage());

@@ -48,9 +48,11 @@ public class WordParser implements DocumentParser {
         String docId = UUID.randomUUID().toString();
         DocumentMeta meta = new DocumentMeta(docId, fileName, "", DocType.DOCX);
         try {
-            var props = pkg.getDocumentProperties();
-            if (props != null) {
-                meta.setAuthor(props.getCreator() != null ? props.getCreator().getValue() : null);
+            var part = pkg.getDocPropsCorePart();
+            if (part != null) {
+                var props = part.getJaxbElement();
+                meta.setAuthor(props.getCreator() != null && !props.getCreator().getContent().isEmpty()
+                        ? props.getCreator().getContent().getFirst() : null);
             }
         } catch (Exception ignored) {}
         return meta;
@@ -144,7 +146,7 @@ public class WordParser implements DocumentParser {
     private String getStyleName(P para) {
         PPr ppr = para.getPPr();
         if (ppr == null) return null;
-        PStyle style = ppr.getPStyle();
+        var style = ppr.getPStyle();
         return (style != null) ? style.getVal() : null;
     }
 

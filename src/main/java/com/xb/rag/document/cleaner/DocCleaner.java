@@ -43,7 +43,7 @@ public class DocCleaner {
     public static String normalizeWhitespace(String text) {
         if (text == null) return "";
         String s = FULLWIDTH_SPACE.matcher(text).replaceAll(" ");
-        s = FULLWIDTH.matcher(s).matcher().replaceAll(m -> {
+        s = FULLWIDTH.matcher(s).replaceAll(m -> {
             char ch = (char) (m.group().charAt(0) - 0xFEE0);
             return String.valueOf(ch);
         });

@@ -102,11 +102,11 @@ class RagIntegrationTest {
                 new DocSegment("seg-4", "doc-001", "这是第三段。", "text")
         );
 
-        ChunkConfig config = new ChunkConfig()
-                .setStrategy("fixed")
-                .setChunkSize(50)
-                .setChunkOverlap(0)
-                .setMinChunkSize(5);
+        ChunkConfig config = new ChunkConfig();
+        config.setStrategy("fixed");
+        config.setChunkSize(50);
+        config.setChunkOverlap(0);
+        config.setMinChunkSize(5);
 
         List<Chunk> chunks = fixedSizeChunker.chunk(segments, config);
 
@@ -139,10 +139,10 @@ class RagIntegrationTest {
         seg4.setHeadingLevel(1);
 
         List<DocSegment> segments = List.of(seg1, seg2, seg3, seg4);
-        ChunkConfig config = new ChunkConfig()
-                .setStrategy("hierarchical")
-                .setChunkSize(200)
-                .setMinChunkSize(3);
+        ChunkConfig config = new ChunkConfig();
+        config.setStrategy("hierarchical");
+        config.setChunkSize(200);
+        config.setMinChunkSize(3);
 
         List<Chunk> chunks = hierarchicalChunker.chunk(segments, config);
 

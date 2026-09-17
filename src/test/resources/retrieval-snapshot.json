@@ -1,0 +1,36 @@
+{
+  "snapshotId": "synthetic-retrieval-v1",
+  "provenance": "Hand-written ranking snapshots for algorithm regression; not output from an embedding model or search index.",
+  "topK": 2,
+  "rankConstant": 60,
+  "queries": [
+    {
+      "question": "报错 E42 怎么处理？",
+      "category": "exact-entity",
+      "relevantChunkIds": ["e42"],
+      "vector": ["overview", "e42"],
+      "bm25": ["e42", "error-list"]
+    },
+    {
+      "question": "账号进不去了，有什么恢复办法？",
+      "category": "semantic-paraphrase",
+      "relevantChunkIds": ["recovery"],
+      "vector": ["recovery", "common"],
+      "bm25": ["common", "account-list"]
+    },
+    {
+      "question": "退款需要什么条件，以及多久能到账？",
+      "category": "multi-chunk",
+      "relevantChunkIds": ["refund-conditions", "refund-time"],
+      "vector": ["refund-conditions", "shared"],
+      "bm25": ["refund-time", "shared"]
+    },
+    {
+      "question": "跨境退款手续费如何计算？",
+      "category": "empty-recall-with-known-evidence",
+      "relevantChunkIds": ["cross-border-fee"],
+      "vector": [],
+      "bm25": []
+    }
+  ]
+}

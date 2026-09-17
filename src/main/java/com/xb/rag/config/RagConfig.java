@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -71,6 +72,18 @@ public class RagConfig {
     @Bean
     public ChunkConfig chunkConfig() {
         return new ChunkConfig();
+    }
+
+    @Bean
+    public ChunkingOrchestrator chunkingOrchestrator(FixedSizeChunker fixedSizeChunker,
+                                                      HierarchicalChunker hierarchicalChunker,
+                                                      SemanticChunker semanticChunker) {
+        Map<String, ChunkStrategy> strategies = Map.of(
+                "fixed", fixedSizeChunker,
+                "hierarchical", hierarchicalChunker,
+                "semantic", semanticChunker
+        );
+        return new ChunkingOrchestrator(strategies);
     }
 
     // ======== 向量库配置 ========

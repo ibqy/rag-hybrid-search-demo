@@ -1,113 +1,114 @@
 package com.xb.rag.evaluation;
 
 import com.xb.rag.hallucination.HallucinationDetector;
-import com.xb.rag.hallucination.HallucinationDetector.HallucinationCheckResult;
 import com.xb.rag.retrieval.SearchResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.function.Function;
 
 /**
- * 评估执行器 —— 批量运行测试集，计算多个指标
+ * 评估执行器 —— 批量运行测试集，计算检索指标
  *
- * 评估维度：
- * - Recall@K: 正确 chunk 是否被召回
- * - Precision@K: 召回结果中正确 chunk 的比例
- * - 幻觉率: LLM 回答中存在幻觉的比例
+ * 评估维度：Recall@K, Precision@K, MRR@K, nDCG@K
  */
 @Service
 public class EvalRunner {
 
     private static final Logger log = LoggerFactory.getLogger(EvalRunner.class);
 
-    // 模拟检索接口：实际注入 HybridSearchService
-    private final java.util.function.Function<String, List<SearchResult>> mockRetriever;
-
-    // 模拟问答接口：实际注入 ChatModel
-    private final java.util.function.BiFunction<String, String, String> mockAnswerer;
-
+    private final Function<String, List<SearchResult>> defaultRetriever;
     private final HallucinationDetector detector;
 
+    @Autowired
     public EvalRunner(HallucinationDetector detector) {
         this.detector = detector;
-        // 默认模拟实现，仅返回空结果
-        this.mockRetriever = q -> List.of();
-        this.mockAnswerer = (q, c) -> "";
+        this.defaultRetriever = q -> List.of();
     }
 
-    /**
-     * 注入真正的检索函数（用于测试时替换）
-     */
-    public EvalRunner withRetriever(java.util.function.Function<String, List<SearchResult>> retriever) {
-        return new EvalRunner(this.detector) {
-            @Override
-            public EvalReport evaluate(EvalDataset dataset, int topK) {
-                return EvalRunner.this.evaluateWith(dataset, topK, retriever, mockAnswerer);
-            }
-        };
+    private EvalRunner(HallucinationDetector detector, Function<String, List<SearchResult>> retriever) {
+        this.detector = detector;
+        this.defaultRetriever = retriever;
     }
 
-    /**
-     * 运行全量评估
-     */
+    public EvalRunner withRetriever(Function<String, List<SearchResult>> retriever) {
+        return new EvalRunner(this.detector, retriever);
+    }
+
     public EvalReport evaluate(EvalDataset dataset, int topK) {
-        return evaluateWith(dataset, topK, mockRetriever, mockAnswerer);
-    }
-
-    private EvalReport evaluateWith(EvalDataset dataset, int topK,
-                                     java.util.function.Function<String, List<SearchResult>> retriever,
-                                     java.util.function.BiFunction<String, String, String> answerer) {
-        if (dataset == null || dataset.size() == 0) {
-            return new EvalReport(List.of(), List.of(), 0);
+        if (topK <= 0) {
+            throw new IllegalArgumentException("topK must be > 0, got " + topK);
         }
-
-        int totalHits = 0;
-        double totalPrecision = 0.0;
-        int hallucinationCount = 0;
-
+        if (dataset == null || dataset.size() == 0) {
+            throw new IllegalArgumentException("dataset must not be empty");
+        }
         for (EvalDataset.EvalSample sample : dataset.getSamples()) {
-            // 检索
-            List<SearchResult> results = retriever.apply(sample.question());
-            Set<String> retrievedIds = results.stream()
-                    .map(SearchResult::getChunkId)
-                    .collect(Collectors.toSet());
-
-            // 计算 Recall@K
-            Set<String> relevant = Set.copyOf(sample.relevantChunkIds());
-            long hits = relevant.stream().filter(retrievedIds::contains).count();
-            if (!relevant.isEmpty()) {
-                totalHits += hits;
-                totalPrecision += (double) hits / Math.min(topK, results.size());
+            if (sample.relevantChunkIds() == null || sample.relevantChunkIds().isEmpty()) {
+                throw new IllegalArgumentException("each sample must have at least one relevant chunk id");
             }
-
-            // 检查幻觉
-            String context = results.stream()
-                    .map(SearchResult::getContent)
-                    .collect(Collectors.joining("\n"));
-            String answer = answerer.apply(sample.question(), context);
-            HallucinationCheckResult check = detector.check(sample.question(), context, answer);
-            if (check.hasHallucination()) {
-                hallucinationCount++;
+            for (String id : sample.relevantChunkIds()) {
+                if (id == null || id.isBlank()) {
+                    throw new IllegalArgumentException("relevant chunk id must not be blank");
+                }
             }
         }
 
         int n = dataset.size();
-        double recall = (double) totalHits / dataset.getSamples().stream()
-                .mapToLong(s -> s.relevantChunkIds().size()).sum();
-        double precisionAvg = totalPrecision / n;
-        double hallucinationRate = (double) hallucinationCount / n;
+        double sumRecall = 0, sumPrecision = 0, sumMRR = 0, sumNDCG = 0;
+        List<EvalDataset.EvalSample> samples = dataset.getSamples();
+        List<List<String>> retrievedIdsPerSample = new ArrayList<>();
+
+        for (EvalDataset.EvalSample sample : samples) {
+            List<SearchResult> results = defaultRetriever.apply(sample.question());
+            List<String> truncated = results.stream()
+                    .limit(topK)
+                    .map(SearchResult::getChunkId)
+                    .toList();
+            retrievedIdsPerSample.add(truncated);
+
+            Set<String> relevant = new LinkedHashSet<>(sample.relevantChunkIds());
+            Set<String> retrieved = new LinkedHashSet<>(truncated);
+
+            long hits = relevant.stream().filter(retrieved::contains).count();
+            sumRecall += relevant.isEmpty() ? 0 : (double) hits / relevant.size();
+            sumPrecision += (double) hits / topK;
+
+            int firstHit = -1;
+            for (int i = 0; i < truncated.size(); i++) {
+                if (relevant.contains(truncated.get(i))) {
+                    firstHit = i + 1;
+                    break;
+                }
+            }
+            sumMRR += firstHit > 0 ? 1.0 / firstHit : 0;
+            sumNDCG += computeNDCG(truncated, relevant);
+        }
 
         List<EvalMetrics> metrics = List.of(
-                new EvalMetrics("Recall@" + topK, recall, n, totalHits),
-                new EvalMetrics("Precision@" + topK, precisionAvg, n, (int) totalPrecision),
-                new EvalMetrics("HallucinationRate", hallucinationRate, n, hallucinationCount)
+                new EvalMetrics("Recall@" + topK, sumRecall / n, n, (int) Math.round(sumRecall * n)),
+                new EvalMetrics("Precision@" + topK, sumPrecision / n, n, (int) Math.round(sumPrecision * n)),
+                new EvalMetrics("MRR@" + topK, sumMRR / n, n, (int) Math.round(sumMRR * n)),
+                new EvalMetrics("nDCG@" + topK, sumNDCG / n, n, (int) Math.round(sumNDCG * n))
         );
 
-        return new EvalReport(metrics, dataset.getSamples(), hallucinationCount);
+        return new EvalReport(metrics, samples, 0, retrievedIdsPerSample);
+    }
+
+    private double computeNDCG(List<String> retrieved, Set<String> relevant) {
+        double dcg = 0;
+        for (int i = 0; i < retrieved.size(); i++) {
+            if (relevant.contains(retrieved.get(i))) {
+                dcg += 1.0 / (Math.log(i + 2) / Math.log(2));
+            }
+        }
+        int idealHits = Math.min(relevant.size(), retrieved.size());
+        double idcg = 0;
+        for (int i = 0; i < idealHits; i++) {
+            idcg += 1.0 / (Math.log(i + 2) / Math.log(2));
+        }
+        return idcg > 0 ? dcg / idcg : 0;
     }
 }

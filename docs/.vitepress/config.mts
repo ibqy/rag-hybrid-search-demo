@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   lang: 'zh-CN',
   title: 'RAG 高阶混合检索知识库',
-  description: '生产级 RAG 教学项目：文档预处理、高级分块、多路混合检索、Rerank 精排、幻觉抑制、评估体系',
+  description: 'Java RAG 教学与评测实验：两路召回、RRF 融合、冻结排名消融、逐查询指标，以及文档处理与真实服务集成边界。',
   base: '/rag-hybrid-search-demo/',
   lastUpdated: true,
   markdown: {
@@ -25,20 +25,32 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: '首页', link: '/' },
-      { text: 'GitHub', link: 'https://github.com/ibqy/rag-hybrid-search-demo' }
+      { text: '评测实验室', link: '/07-RAG评估体系' },
+      { text: '学习路线', link: '/#learning-path' },
+      { text: 'API 与边界', link: '/08-API接口文档' }
     ],
     sidebar: [
       {
-        text: '教学文档',
+        text: '证据与检索',
         items: [
           { text: '01 · 文档预处理', link: '/01-文档预处理' },
-          { text: '02 · 高级分块策略', link: '/02-高级分块策略' },
-          { text: '03 · 多路混合检索', link: '/03-多路混合检索' },
-          { text: '04 · Rerank 与上下文组装', link: '/04-Rerank与上下文组装' },
-          { text: '05 · 幻觉抑制', link: '/05-幻觉抑制' },
-          { text: '06 · 向量库运维与增量更新', link: '/06-向量库运维与增量更新' },
-          { text: '07 · RAG 评估体系', link: '/07-RAG评估体系' },
-          { text: '08 · API 接口文档', link: '/08-API接口文档' }
+          { text: '02 · 分块策略与标签版本', link: '/02-高级分块策略' },
+          { text: '03 · 两路召回与 RRF', link: '/03-多路混合检索' }
+        ]
+      },
+      {
+        text: '组装与集成边界',
+        items: [
+          { text: '04 · Rerank 与上下文', link: '/04-Rerank与上下文组装' },
+          { text: '05 · 回答校验的边界', link: '/05-幻觉抑制' },
+          { text: '06 · 增量更新与运维骨架', link: '/06-向量库运维与增量更新' }
+        ]
+      },
+      {
+        text: '实验与验证',
+        items: [
+          { text: '07 · 评测实验室', link: '/07-RAG评估体系' },
+          { text: '08 · API 与集成边界', link: '/08-API接口文档' }
         ]
       }
     ],
@@ -55,7 +67,7 @@ export default defineConfig({
     sidebarMenuLabel: '文档',
     returnToTopLabel: '回到顶部',
     footer: {
-      message: '个人教学项目 · 代码可跑 · 注释记录设计取舍',
+      message: '教学与实验项目 · 合成排名不等于业务基准 · 服务集成边界见文档',
       copyright: 'Copyright © 2026 ibqy'
     }
   }

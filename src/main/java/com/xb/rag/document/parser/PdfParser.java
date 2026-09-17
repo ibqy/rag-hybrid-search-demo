@@ -36,7 +36,8 @@ public class PdfParser implements DocumentParser {
 
     @Override
     public ParseResult parse(InputStream input, String fileName, Map<String, String> options) {
-        try (PDDocument doc = PDDocument.load(input)) {
+        try (var buffer = new org.apache.pdfbox.io.RandomAccessReadBuffer(input);
+             PDDocument doc = org.apache.pdfbox.Loader.loadPDF(buffer)) {
             DocumentMeta meta = buildMeta(doc, fileName);
             List<DocSegment> segments = new ArrayList<>();
             int totalPages = doc.getNumberOfPages();
@@ -63,7 +64,7 @@ public class PdfParser implements DocumentParser {
             var info = doc.getDocumentInformation();
             if (info != null) {
                 meta.setAuthor(info.getAuthor());
-                meta.setCreatedAt(Optional.ofNullable(info.getCreationDate()).map(Date::toString).orElse(null));
+                meta.setCreatedAt(Optional.ofNullable(info.getCreationDate()).map(date -> date.toInstant().toString()).orElse(null));
             }
         } catch (Exception ignored) {}
         return meta;

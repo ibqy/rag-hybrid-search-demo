@@ -20,6 +20,12 @@ public class MarkdownParser implements DocumentParser {
     private static final Pattern HEADING = Pattern.compile("^(#{1,6})\\s+(.+)$", Pattern.MULTILINE);
     // 代码块（fenced）
     private static final Pattern CODE_BLOCK = Pattern.compile("```(\\w*)\\n([\\s\\S]*?)```", Pattern.MULTILINE);
+    // 表格（pipe table：header + separator + rows）
+    private static final Pattern TABLE_BLOCK = Pattern.compile(
+            "^\\|.+\\|[ \\t]*\\n" +
+            "^\\|[-: ]+\\|[-: |]*\\n" +
+            "(?:^\\|.+\\|[ \\t]*\\n?)*",
+            Pattern.MULTILINE);
 
     @Override
     public boolean supports(DocType type) {
@@ -81,8 +87,30 @@ public class MarkdownParser implements DocumentParser {
         codeMatcher.appendTail(sb);
         String textWithoutCode = sb.toString();
 
+        // 1b. 提取所有表格，替换为占位符，防止 | 被当正文
+        Map<String, String> tablePlaceholders = new LinkedHashMap<>();
+        StringBuffer sb2 = new StringBuffer();
+        Matcher tableMatcher = TABLE_BLOCK.matcher(textWithoutCode);
+        int tIdx = 0;
+        while (tableMatcher.find()) {
+            String tableMd = tableMatcher.group();
+            String placeholder = "%%TABLE_BLOCK_" + (tIdx++) + "%%";
+            tablePlaceholders.put(placeholder, tableMd);
+
+            DocSegment seg = new DocSegment();
+            seg.setId(UUID.randomUUID().toString());
+            seg.setContentType("table");
+            seg.setContent(tableMd.trim());
+            seg.setTableMarkdown(tableMd.trim());
+            segments.add(seg);
+
+            tableMatcher.appendReplacement(sb2, placeholder);
+        }
+        tableMatcher.appendTail(sb2);
+        String textWithoutCodeAndTable = sb2.toString();
+
         // 2. 按标题行拆分段
-        Matcher headingMatcher = HEADING.matcher(textWithoutCode);
+        Matcher headingMatcher = HEADING.matcher(textWithoutCodeAndTable);
         int lastStart = 0;
         String lastSectionTitle = "";
         int lastHeadingLevel = 0;
@@ -90,10 +118,9 @@ public class MarkdownParser implements DocumentParser {
         while (headingMatcher.find()) {
             // 将上一个标题和文本内容作为一个 segment（跳过第一个匹配前的部分）
             if (headingMatcher.start() > 0 && lastHeadingLevel > 0) {
-                String sectionContent = textWithoutCode.substring(lastStart, headingMatcher.start()).trim();
+                String sectionContent = textWithoutCodeAndTable.substring(lastStart, headingMatcher.start()).trim();
                 if (!sectionContent.isEmpty()) {
-                    // 重新放入代码块原文
-                    sectionContent = restoreCodeBlocks(sectionContent, codePlaceholders);
+                    sectionContent = restorePlaceholders(sectionContent, codePlaceholders, tablePlaceholders);
                     DocSegment seg = buildTextSegment(sectionContent, lastSectionTitle, lastHeadingLevel);
                     if (seg != null) segments.add(seg);
                 }
@@ -110,17 +137,17 @@ public class MarkdownParser implements DocumentParser {
 
         // 最后一个标题后的剩余内容
         if (lastHeadingLevel > 0) {
-            String tail = textWithoutCode.substring(lastStart).trim();
+            String tail = textWithoutCodeAndTable.substring(lastStart).trim();
             // 去掉标题行本身
             tail = tail.replaceAll("^#{1,6}\\s+.*", "").trim();
             if (!tail.isEmpty()) {
-                tail = restoreCodeBlocks(tail, codePlaceholders);
+                tail = restorePlaceholders(tail, codePlaceholders, tablePlaceholders);
                 DocSegment seg = buildTextSegment(tail, lastSectionTitle, lastHeadingLevel);
                 if (seg != null) segments.add(seg);
             }
         } else {
             // 无标题的情况，整篇作为一个段
-            String all = restoreCodeBlocks(textWithoutCode.trim(), codePlaceholders);
+            String all = restorePlaceholders(textWithoutCodeAndTable.trim(), codePlaceholders, tablePlaceholders);
             if (!all.isEmpty()) {
                 DocSegment seg = new DocSegment();
                 seg.setId(UUID.randomUUID().toString());
@@ -146,10 +173,14 @@ public class MarkdownParser implements DocumentParser {
         return seg;
     }
 
-    // 将占位符还原为代码块原文
-    private String restoreCodeBlocks(String text, Map<String, String> placeholders) {
+    // 将占位符还原为原文
+    private String restorePlaceholders(String text, Map<String, String> codePlaceholders,
+                                       Map<String, String> tablePlaceholders) {
         String result = text;
-        for (var entry : placeholders.entrySet()) {
+        for (var entry : codePlaceholders.entrySet()) {
+            result = result.replace(entry.getKey(), entry.getValue());
+        }
+        for (var entry : tablePlaceholders.entrySet()) {
             result = result.replace(entry.getKey(), entry.getValue());
         }
         return result;

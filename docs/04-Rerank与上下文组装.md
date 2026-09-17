@@ -1,95 +1,80 @@
-# 四、Rerank 重排 + 结果过滤 + 上下文组装
+# 四、Rerank 与上下文组装：先划清分数和预算
 
-## 问题背景
+## 当前接线状态
 
-多路召回 20 条候选，里面仍有低相关片段。向量检索是"粗排"（找相似的），Rerank 是"精排"（判断是否相关）。这是 RAG 效果提升的核心手段。
+> 源码：[RerankService](../src/main/java/com/xb/rag/rerank/RerankService.java)、[ResultFilter](../src/main/java/com/xb/rag/rerank/ResultFilter.java)、[ContextBuilder](../src/main/java/com/xb/rag/context/ContextBuilder.java)。
 
-## Rerank 重排
+**`RagController` 当前没有调用 `RerankService` 或完整过滤链。** 它使用混合检索结果构建上下文并生成回答。本章区分可阅读的组件实现与尚待完成的实际集成，不能把它们画成已验证的端到端精排流程。
 
-> 源文件：[`RerankService.java`](../src/main/java/com/xb/rag/rerank/RerankService.java)
+## Rerank 客户端做了什么
 
-Rerank 与向量检索的核心区别：
-- 向量检索：query 和 chunk 各自编码为向量，余弦距离 ≈ 语义相似度
-- Rerank：query + chunk 拼接输入交叉编码器，输出精确相关性分数
+向量检索分别编码 query 与文档；交叉编码器通常共同读取 query-document 对，可以提供更细的相关性信号，但不是保证更准确。
 
-```java
-// 逐条调用 rerank API
-for (SearchResult candidate : candidates) {
-    double score = callRerankApi(query, candidate.getContent());
-    candidate.setScore(score); // 覆盖原有分数
-}
+当前 `RerankService` 是外部 HTTP 客户端，不内置 BGE 模型。对每个候选逐条调用 `retrieval.rerank-url`：
+
+```text
+请求：{"query": "用户问题", "text": "一个候选片段"}
+响应：{"score": 0.7, "text": "一个候选片段"}
 ```
 
-### 降级策略
+这里的 0.7 只是响应形状示意，不是效果测量。实际服务需与该逐对协议兼容；设置 `rerank-model` 名称并不等于部署模型或适配任意厂商批量 API。
 
-Rerank API 不可用时（网络超时、服务挂掉）：
-```java
-catch (WebClientRequestException e) {
-    log.warn("Rerank 服务不可用，降级为原始排序");
-    return fallbackSort(candidates, topK);
-}
-```
-不阻塞主流程，保证系统可用性。
+### 失败与延迟边界
 
-## 结果过滤
+- 逐候选同步 HTTP 调用使耗时随候选数增加，必须用真实服务测量。
+- 客户端捕获部分网络/HTTP 异常并尝试降级，不等于已实现完整超时、重试或熔断策略。
+- 当前会直接覆盖候选分数。如果前几条成功、后续失败，降级时可能混合 Rerank 与原始分数；不能声称一定恢复了原排名。
+- 接入前应保留原始候选副本，验证全失败和部分失败都回退到可解释的同一评分空间。这是待完成的验收要求。
 
-> 源文件：[`ResultFilter.java`](../src/main/java/com/xb/rag/rerank/ResultFilter.java)
+## 分数不能混用
 
-三层过滤：
+| 分数 | 表达什么 | 是否能直接用 0.45 过滤 |
+|---|---|---|
+| 向量相似度 | 特定模型与距离度量下的相似性 | 需按模型与语料校准 |
+| BM25 | 特定索引统计下的词项相关性 | 不能套用概率阈值 |
+| RRF | 多路排名贡献的和 | 不能；两路 c=60 时最高仅约 0.0328 |
+| 外部 Rerank | 服务定义的输出分数 | 当前客户端配置 0.45，但仍须在验证集校准 |
 
-| 过滤层 | 方法 | 策略 |
-|--------|------|------|
-| 阈值过滤 | `filterByThreshold()` | 低于 0.45 直接丢弃 |
-| 内容去重 | `deduplicate()` | 文本重叠 > 90% 合并保留高分 |
-| Token预算 | `limitTokenCount()` | 超 LLM 上下文窗口时丢弃低分项 |
+RRF 负责融合不同评分体系的排名；它没有把所有分数变成同一种概率。
 
-去重算法：滑动窗口采样，防止 O(n²)：
-```java
-int step = Math.max(1, shorter.length() / 100);
-for (int i = 0; i <= shorter.length() - step; i += step) {
-    String sub = shorter.substring(i, Math.min(i + step, shorter.length()));
-    if (longer.contains(sub)) matchLen += sub.length();
-}
-```
+## 过滤工具及限制
 
-## 上下文组装
+`ResultFilter` 提供阈值过滤、内容去重和 token 预算截断工具，但目前没有完整接入问答控制器。
 
-> 源文件：[`ContextBuilder.java`](../src/main/java/com/xb/rag/context/ContextBuilder.java)
+- 去重采用文本片段采样比较，阈值 90%；这不是语义去重，也不是严格集合相似度。
+- 结果间仍有嵌套比较，采样并没有消除随候选数增长的成对比较成本。
+- token 估算是字符/词启发式，不能保证适配中文、代码或具体模型 tokenizer。
+- 遇到下一个候选超预算时停止；不保证解决最优证据装箱问题。
 
-### 引用格式
+## 上下文必须保留引用对应关系
 
-```
-[1] (来源: 用户手册.pdf, 页码: 12)
-系统登录流程：打开浏览器输入 URL...
+`ContextBuilder` 按分数排序，生成正文和引用对象。**以下为格式示例，不是真实回答证据：**
 
-[2] (来源: API文档.md, 页码: 5)
-POST /api/login 请求参数...
+```text
+[1] (来源: 操作手册.pdf, 页码: 12)
+申请人需提交身份材料。
+
+[2] (来源: 审批规则.md, 页码: 0)
+特殊情况需补充审批。
 ```
 
-### 核心方法
+页码 0 可能表示未知，不能向用户伪装为精确页码。引用列表应对应最终送入模型的片段，而不是截断前的列表。
 
-```java
-// 带元数据的上下文
-public static String buildContextWithMeta(List<SearchResult> results)
+当前字符串截断工具按换行从尾部收集内容，存在引用头与正文被拆开的边界；不能描述成已实现“始终保留最高分完整引用块”的预算算法。问答控制器当前也没有调用这个截断流程。
 
-// 自动截断超长上下文
-public static String truncateIfExceeds(String context, int maxTokens)
+## 接入顺序与验收建议
 
-// 构建可追溯的引用列表
-public static List<SearchResultCitation> buildCitations(List<SearchResult> results)
+以下是目标集成流程，**不是当前控制器的调用链**：
+
+```text
+两路候选 → RRF 候选集 → Rerank → 过滤/去重
+    → 按完整证据块选择预算 → 重新编号引用 → Prompt → 回答
 ```
 
-截断策略：从最低分项开始丢弃，至少保留一条。
+1. 分开设置两路候选数、送入重排的条数、最终上下文条数；候选遗漏的证据不能靠 Rerank 恢复。
+2. 预算应扣除 System Prompt、用户问题、历史及输出预留，再计算可容纳证据；不是把整个窗口都分给 chunk。
+3. 先在同一冻结候选集上比较重排前后 nDCG/MRR，再对真实服务测延迟与错误率。
+4. 测试全空、单个超长片段、重复证据、部分 HTTP 失败、引用重编号等边界。
+5. 将回答是否忠于证据单独评估，不能由精排分数直接推断无幻觉。
 
-## 完整链路数据流
-
-```
-多路召回(20条) → Rerank精排 → 阈值过滤 → 去重 → Token截断 → 
-上下文组装(8条带引用) → Prompt拼接 → LLM回答
-```
-
-## 面试要点
-
-- Rerank 为什么比向量检索准？交叉编码器同时看到 query 和 chunk，双向注意力计算相关性
-- 为什么 `scoreThreshold` 不能设太高？高阈值召回少，可能遗漏正确答案；0.45 是经验值
-- 引用标记有什么用？LLM 回答时标注 `[1][2]`，用户可追溯到原文，减少幻觉
+继续阅读：[回答校验的能力边界](./05-幻觉抑制.md) · [分层评测协议](./07-RAG评估体系.md)。
