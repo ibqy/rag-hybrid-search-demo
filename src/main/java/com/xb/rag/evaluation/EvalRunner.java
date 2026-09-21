@@ -1,6 +1,7 @@
 package com.xb.rag.evaluation;
 
 import com.xb.rag.hallucination.HallucinationDetector;
+import com.xb.rag.retrieval.HybridSearchService;
 import com.xb.rag.retrieval.SearchResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +25,9 @@ public class EvalRunner {
     private final HallucinationDetector detector;
 
     @Autowired
-    public EvalRunner(HallucinationDetector detector) {
+    public EvalRunner(HallucinationDetector detector, HybridSearchService hybridSearchService) {
         this.detector = detector;
-        this.defaultRetriever = q -> List.of();
+        this.defaultRetriever = query -> hybridSearchService.search(query);
     }
 
     private EvalRunner(HallucinationDetector detector, Function<String, List<SearchResult>> retriever) {
@@ -99,8 +100,10 @@ public class EvalRunner {
 
     private double computeNDCG(List<String> retrieved, Set<String> relevant) {
         double dcg = 0;
+        Set<String> seen = new HashSet<>();
         for (int i = 0; i < retrieved.size(); i++) {
-            if (relevant.contains(retrieved.get(i))) {
+            String id = retrieved.get(i);
+            if (seen.add(id) && relevant.contains(id)) {
                 dcg += 1.0 / (Math.log(i + 2) / Math.log(2));
             }
         }

@@ -3,6 +3,7 @@ package com.xb.rag;
 import com.xb.rag.controller.EvalController;
 import com.xb.rag.evaluation.EvalRunner;
 import com.xb.rag.hallucination.HallucinationDetector;
+import com.xb.rag.retrieval.HybridSearchService;
 import com.xb.rag.retrieval.SearchResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,7 +16,7 @@ import static org.mockito.Mockito.*;
 
 class EvalControllerTest {
 
-    private final EvalRunner runner = new EvalRunner(mock(HallucinationDetector.class, RETURNS_DEEP_STUBS))
+    private final EvalRunner runner = new EvalRunner(mock(HallucinationDetector.class, RETURNS_DEEP_STUBS), mock(HybridSearchService.class))
             .withRetriever(q -> List.of(new SearchResult("right", "doc", "content")));
     private final WebTestClient client = WebTestClient.bindToController(new EvalController(runner)).build();
 

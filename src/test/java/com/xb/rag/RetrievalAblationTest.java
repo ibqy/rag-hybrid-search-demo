@@ -5,6 +5,7 @@ import com.xb.rag.evaluation.EvalDataset;
 import com.xb.rag.evaluation.EvalReport;
 import com.xb.rag.evaluation.EvalRunner;
 import com.xb.rag.hallucination.HallucinationDetector;
+import com.xb.rag.retrieval.HybridSearchService;
 import com.xb.rag.retrieval.RrfFusion;
 import com.xb.rag.retrieval.SearchResult;
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,7 @@ class RetrievalAblationTest {
     }
 
     private EvalReport evaluate(EvalDataset dataset, int topK, Map<String, List<SearchResult>> rankings) {
-        return new EvalRunner(mock(HallucinationDetector.class, RETURNS_DEEP_STUBS))
+        return new EvalRunner(mock(HallucinationDetector.class, RETURNS_DEEP_STUBS), mock(HybridSearchService.class))
                 .withRetriever(rankings::get).evaluate(dataset, topK);
     }
 

@@ -5,6 +5,7 @@ import com.xb.rag.evaluation.EvalDataset;
 import com.xb.rag.evaluation.EvalReport;
 import com.xb.rag.evaluation.EvalRunner;
 import com.xb.rag.hallucination.HallucinationDetector;
+import com.xb.rag.retrieval.HybridSearchService;
 import com.xb.rag.retrieval.SearchResult;
 import org.junit.jupiter.api.Test;
 
@@ -65,7 +66,7 @@ class EvalRunnerTest {
     }
 
     private EvalRunner runner(List<SearchResult> hits) {
-        return new EvalRunner(mock(HallucinationDetector.class, RETURNS_DEEP_STUBS)).withRetriever(q -> hits);
+        return new EvalRunner(mock(HallucinationDetector.class, RETURNS_DEEP_STUBS), mock(HybridSearchService.class)).withRetriever(q -> hits);
     }
 
     private EvalDataset dataset(String... relevant) {
