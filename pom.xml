@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.4</version>
+        <version>3.4.13</version>
         <relativePath/>
     </parent>
 
@@ -24,8 +24,8 @@
         <tika.version>3.1.0</tika.version>
         <docx4j.version>11.5.1</docx4j.version>
         <tess4j.version>5.15.0</tess4j.version>
-        <elasticsearch.version>8.17.0</elasticsearch.version>
-        <milvus.version>2.5.0</milvus.version>
+        <elasticsearch.version>9.5.4</elasticsearch.version>
+        <milvus.version>3.0.10</milvus.version>
     </properties>
 
     <dependencies>
