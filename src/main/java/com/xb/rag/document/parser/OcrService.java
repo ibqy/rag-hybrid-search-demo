@@ -11,6 +11,8 @@ import java.io.InputStream;
 
 /**
  * OCR 服务 —— 基于 Tess4J 的简单封装
+ *
+ * @author ibqy
  */
 public class OcrService {
 

@@ -5,6 +5,8 @@ import java.util.Map;
 
 /**
  * 检索结果模型 —— 统一表示向量检索 / BM25 / Rerank 等各阶段的匹配结果
+ *
+ * @author ibqy
  */
 public class SearchResult {
 

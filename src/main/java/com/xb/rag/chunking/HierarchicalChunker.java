@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
  * 层级分块器 —— 按文档 → 章节层级组装块。
  * 当章节内容超过 chunkSize 时，在该章节内继续拆分，但保留标题边界。
  * 表格/代码段保持完整，不会跨块。
+ *
+ * @author ibqy
  */
 public class HierarchicalChunker implements ChunkStrategy {
 

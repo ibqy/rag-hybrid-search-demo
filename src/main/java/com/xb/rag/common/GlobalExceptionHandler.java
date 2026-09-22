@@ -21,6 +21,8 @@ import java.util.UUID;
  *   <li>{@link ResponseStatusException} — WebFlux 推荐的异常类型，自带 HTTP 状态码</li>
  *   <li>{@link IllegalArgumentException} — RagController 的 record 校验抛出</li>
  * </ul>
+ *
+ * @author ibqy
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {

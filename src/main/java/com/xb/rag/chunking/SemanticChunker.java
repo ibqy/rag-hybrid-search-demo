@@ -10,6 +10,8 @@ import java.util.UUID;
 /**
  * 语义分块器 —— 利用嵌入向量计算句子组之间的余弦相似度，
  * 在语义转折处切分。当 EmbeddingModel 不可用时回退到固定大小分块。
+ *
+ * @author ibqy
  */
 public class SemanticChunker implements ChunkStrategy {
 

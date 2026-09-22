@@ -14,6 +14,8 @@ import java.util.Map;
 
 /**
  * 幻觉检测服务 —— 利用 LLM 自我验证回答是否完全基于提供的参考资料
+ *
+ * @author ibqy
  */
 @Service
 public class HallucinationDetector {

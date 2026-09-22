@@ -16,6 +16,8 @@ import java.util.Optional;
 /**
  * 核心 Bean 配置 —— 将所有文档解析器、分块策略等
  * 手工 new 的组件注册为 Spring 管理的 Bean
+ *
+ * @author ibqy
  */
 @Configuration
 public class RagConfig {

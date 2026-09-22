@@ -6,6 +6,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * WebClient 配置 —— 用于调用外部 Rerank HTTP 服务
+ *
+ * @author ibqy
  */
 @Configuration
 public class WebClientConfig {

@@ -17,6 +17,8 @@ import java.util.List;
  * 3. 删除 → 软删除标记，后台异步物理清理
  *
  * 生产环境下应通过 Kafka 消息异步执行，避免同步接口超时。
+ *
+ * @author ibqy
  */
 @Service
 public class IncrementalUpdater {

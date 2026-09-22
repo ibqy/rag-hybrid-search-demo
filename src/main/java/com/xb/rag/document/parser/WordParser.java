@@ -16,6 +16,8 @@ import java.util.*;
 
 /**
  * DOCX 解析器 —— 基于 docx4j，提取样式、表格、内嵌图片
+ *
+ * @author ibqy
  */
 public class WordParser implements DocumentParser {
 

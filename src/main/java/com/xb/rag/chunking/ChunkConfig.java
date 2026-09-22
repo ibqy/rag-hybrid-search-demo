@@ -2,6 +2,8 @@ package com.xb.rag.chunking;
 
 /**
  * 分块配置 —— 控制分块策略的参数
+ *
+ * @author ibqy
  */
 public class ChunkConfig {
 

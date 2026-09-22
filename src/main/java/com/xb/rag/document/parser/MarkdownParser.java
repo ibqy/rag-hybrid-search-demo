@@ -13,6 +13,8 @@ import java.util.regex.Pattern;
 
 /**
  * Markdown 解析器 —— 基于正则 + JSoup 辅助，解析标题树、代码块
+ *
+ * @author ibqy
  */
 public class MarkdownParser implements DocumentParser {
 

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
  *
  * 将向量检索与 BM25 关键词检索的结果通过 RRF 融合，
  * 提供统一的高层检索入口。
+ *
+ * @author ibqy
  */
 @Service
 public class HybridSearchService {

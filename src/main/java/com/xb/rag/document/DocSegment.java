@@ -5,6 +5,8 @@ import java.util.Map;
 
 /**
  * 文档切片 —— 从原始文档中提取的一个段落/表格/代码块/图片OCR结果
+ *
+ * @author ibqy
  */
 public class DocSegment {
 

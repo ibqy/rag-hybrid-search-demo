@@ -14,6 +14,9 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 
+/**
+ * 评估接口单元测试 —— 验证 /api/eval/run 的参数校验和指标返回
+ */
 class EvalControllerTest {
 
     private final EvalRunner runner = new EvalRunner(mock(HallucinationDetector.class, RETURNS_DEEP_STUBS), mock(HybridSearchService.class))

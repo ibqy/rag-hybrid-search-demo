@@ -8,6 +8,8 @@ import java.util.List;
 
 /**
  * 上下文构建器 —— 将检索结果组装为可供 LLM 直接使用的引用格式
+ *
+ * @author ibqy
  */
 public class ContextBuilder {
 

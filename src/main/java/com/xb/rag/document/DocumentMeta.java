@@ -4,6 +4,8 @@ import java.util.List;
 
 /**
  * 文档元信息，记录来源、类型、权限等
+ *
+ * @author ibqy
  */
 public class DocumentMeta {
 

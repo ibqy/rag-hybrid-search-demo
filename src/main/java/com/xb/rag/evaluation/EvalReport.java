@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * 评估报告 —— 包含所有指标和样本级明细
+ *
+ * @author ibqy
  */
 public class EvalReport {
 

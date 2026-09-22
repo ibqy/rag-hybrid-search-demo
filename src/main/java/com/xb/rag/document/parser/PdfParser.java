@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 
 /**
  * PDF 解析器 —— 基于 PDFBox，逐页提取 + 页眉页脚过滤 + 简单表格检测
+ *
+ * @author ibqy
  */
 public class PdfParser implements DocumentParser {
 

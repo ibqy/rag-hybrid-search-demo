@@ -6,6 +6,8 @@ import java.util.regex.Pattern;
 
 /**
  * 文档文本清洗工具：去页眉页脚、标准化空白、去重、去目录
+ *
+ * @author ibqy
  */
 public class DocCleaner {
 

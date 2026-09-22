@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 
 /**
  * 引用验证器 —— 检查 LLM 回答中的引用标记 [N] 是否为有效的引用
+ *
+ * @author ibqy
  */
 public final class CitationValidator {
 

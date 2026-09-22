@@ -8,6 +8,8 @@ import java.util.List;
 
 /**
  * 结果过滤器 —— 阈值过滤、去重、令牌预算截断等静态工具方法
+ *
+ * @author ibqy
  */
 public final class ResultFilter {
 

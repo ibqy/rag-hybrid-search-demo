@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
  *
  * 注入 PgVectorStore（或任何 VectorStore 实现），执行向量检索后
  * 将 Spring AI 的 Document 转为本模块的 SearchResult 模型。
+ *
+ * @author ibqy
  */
 @Service
 public class VectorRetriever {

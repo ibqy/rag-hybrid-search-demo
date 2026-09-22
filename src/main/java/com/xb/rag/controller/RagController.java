@@ -19,6 +19,13 @@ import reactor.core.scheduler.Schedulers;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * RAG 检索增强生成控制器
+ *
+ * <p>提供文档问答接口，编排混合检索→上下文构建→幻觉检测→引用验证的完整 RAG 管道。</p>
+ *
+ * @author ibqy
+ */
 @RestController
 @RequestMapping("/api/rag")
 public class RagController {
@@ -39,6 +46,12 @@ public class RagController {
         this.detector = detector;
     }
 
+    /**
+     * RAG 问答接口 —— 编排混合检索→上下文构建→LLM 生成→幻觉检测→引用验证
+     *
+     * @param request 问答请求（含问题、topK 参数、是否启用幻觉检测等）
+     * @return 包含回答、引用来源和耗时的响应
+     */
     @PostMapping("/ask")
     public Mono<RagResponse> ask(@RequestBody RagRequest request) {
         return Mono.fromCallable(() -> {

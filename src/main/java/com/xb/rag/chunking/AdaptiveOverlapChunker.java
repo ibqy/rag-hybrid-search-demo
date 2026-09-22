@@ -12,6 +12,8 @@ import java.util.List;
  * - 短块（< 100 字符）→ 重叠为 0
  * - 长块（> 1000 字符）→ 最大重叠（min(config.chunkOverlap, 256)）
  * - 表格/代码块 → 重叠为 0
+ *
+ * @author ibqy
  */
 public class AdaptiveOverlapChunker implements ChunkStrategy {
 

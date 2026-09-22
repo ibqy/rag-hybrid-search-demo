@@ -8,6 +8,8 @@ import java.util.UUID;
 /**
  * 固定大小分块器 —— 按字符数简单切分，支持重叠。
  * 表格/代码块不会被切分到两个块中。
+ *
+ * @author ibqy
  */
 public class FixedSizeChunker implements ChunkStrategy {
 

@@ -5,6 +5,8 @@ import java.util.List;
 
 /**
  * 分块策略接口 —— 定义了如何将文档切片（DocSegment）组装成语义块（Chunk）
+ *
+ * @author ibqy
  */
 public interface ChunkStrategy {
 

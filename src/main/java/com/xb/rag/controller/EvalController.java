@@ -15,6 +15,8 @@ import java.util.List;
  * RAG 评估接口 —— 启动评估、查看指标
  *
  * POST /api/eval/run  运行评估
+ *
+ * @author ibqy
  */
 @RestController
 @RequestMapping("/api/eval")

@@ -20,6 +20,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * RAG 控制器单元测试 —— 验证问答管道的检索→生成→引用验证流程
+ */
 class RagControllerTest {
     @Test
     void sendsQuestionAndEvidenceToModelOutsideEventLoop() {

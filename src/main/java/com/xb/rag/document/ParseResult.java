@@ -4,6 +4,8 @@ import java.util.List;
 
 /**
  * 文档解析结果：元数据 + 切片列表 + 状态
+ *
+ * @author ibqy
  */
 public class ParseResult {
 

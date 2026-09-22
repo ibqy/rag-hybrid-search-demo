@@ -14,6 +14,8 @@ import java.util.HexFormat;
  *
  * 只有 MD5 发生变化时，才触发增量更新流程。
  * MD5 不变直接跳过处理，避免重复解析和向量化。
+ *
+ * @author ibqy
  */
 @Service
 public class DocChangeWatcher {

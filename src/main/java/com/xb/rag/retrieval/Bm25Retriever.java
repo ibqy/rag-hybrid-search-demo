@@ -17,6 +17,8 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
  *
  * 同时对 content（文档正文）和 sectionTitle（章节标题）字段执行
  * 全文检索，适合处理精确关键词匹配场景。
+ *
+ * @author ibqy
  */
 @Service
 public class Bm25Retriever {

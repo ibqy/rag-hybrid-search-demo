@@ -4,6 +4,8 @@ package com.xb.rag.document.sync;
  * 文档同步消息 —— 用于 Kafka 异步文档处理的消息体
  *
  * 上传文档 -> 发送此消息到 Kafka -> 消费者异步解析、切片、写入向量库
+ *
+ * @author ibqy
  */
 public class DocSyncMessage {
 

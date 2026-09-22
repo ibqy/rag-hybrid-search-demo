@@ -23,6 +23,8 @@ import java.util.List;
  * 生产环境：文档上传 API 只做"存文件 + 发消息",
  * 耗时操作（解析、切片、向量化）由本消费者异步执行，
  * 避免同步接口超时。
+ *
+ * @author ibqy
  */
 @Component
 public class DocSyncConsumer {

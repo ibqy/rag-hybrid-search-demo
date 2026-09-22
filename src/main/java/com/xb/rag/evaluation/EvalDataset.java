@@ -11,6 +11,8 @@ import java.util.List;
  * - question: 用户问题
  * - relevantChunkIds: 该问题对应的正确参考 chunk ID 列表
  * - expectedAnswer: 期望的标准回答（用于判断回答忠实度）
+ *
+ * @author ibqy
  */
 public class EvalDataset {
 

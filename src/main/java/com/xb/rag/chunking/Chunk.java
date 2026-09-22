@@ -7,6 +7,8 @@ import java.util.Map;
 
 /**
  * 分块 —— 由若干文档切片（DocSegment）组装而成的语义块
+ *
+ * @author ibqy
  */
 public class Chunk {
 

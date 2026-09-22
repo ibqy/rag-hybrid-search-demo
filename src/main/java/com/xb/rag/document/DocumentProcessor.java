@@ -20,6 +20,8 @@ import java.util.*;
  * 3. 解析得到切片 + 元信息
  * 4. 计算文件 MD5
  * 5. 对每个切片文本执行清洗
+ *
+ * @author ibqy
  */
 public class DocumentProcessor {
 

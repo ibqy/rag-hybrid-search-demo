@@ -9,6 +9,9 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
+/**
+ * RRF 融合算法单元测试 —— 验证多路排名融合的打分、去重、截断逻辑
+ */
 class RrfFusionTest {
 
     @Test

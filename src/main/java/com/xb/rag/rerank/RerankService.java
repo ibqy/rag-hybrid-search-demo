@@ -15,6 +15,8 @@ import java.util.Map;
 
 /**
  * 重排序服务 —— 调用外部 BGE-Rerank HTTP 端点对候选结果重新打分排序
+ *
+ * @author ibqy
  */
 @Service
 public class RerankService {

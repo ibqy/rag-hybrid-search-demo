@@ -2,6 +2,8 @@ package com.xb.rag.vectorstore;
 
 /**
  * 向量库索引配置 —— 封装 HNSW / IVF 索引参数
+ *
+ * @author ibqy
  */
 public class VectorStoreConfig {
 

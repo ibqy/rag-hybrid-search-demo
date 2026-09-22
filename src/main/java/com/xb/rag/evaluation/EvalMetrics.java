@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * 评估指标 —— 封装 Recall@K / Precision@K / MRR@K / nDCG@K 等量化结果
+ *
+ * @author ibqy
  */
 public class EvalMetrics {
 

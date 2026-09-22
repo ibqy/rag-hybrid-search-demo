@@ -14,6 +14,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * 评估执行器单元测试 —— 验证 Recall/Precision/MRR/nDCG 指标计算
+ */
 class EvalRunnerTest {
 
     @Test

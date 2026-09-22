@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
  *
  * 生产环境下 pgvector / Milvus 的运维操作封装：
  * 不直接暴露底层客户端，通过本服务统一管理。
+ *
+ * @author ibqy
  */
 @Service
 public class VectorStoreManager {

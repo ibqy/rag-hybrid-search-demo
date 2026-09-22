@@ -15,6 +15,8 @@ import java.util.function.Function;
  * 评估执行器 —— 批量运行测试集，计算检索指标
  *
  * 评估维度：Recall@K, Precision@K, MRR@K, nDCG@K
+ *
+ * @author ibqy
  */
 @Service
 public class EvalRunner {
@@ -35,10 +37,23 @@ public class EvalRunner {
         this.defaultRetriever = retriever;
     }
 
+    /**
+     * 返回绑定自定义检索器的评估器副本，用于消融实验对比
+     *
+     * @param retriever 自定义检索函数（query → results）
+     * @return 新的 EvalRunner 实例
+     */
     public EvalRunner withRetriever(Function<String, List<SearchResult>> retriever) {
         return new EvalRunner(this.detector, retriever);
     }
 
+    /**
+     * 执行评估 —— 遍历测试集，计算 Recall@K / Precision@K / MRR@K / nDCG@K
+     *
+     * @param dataset 评估测试集（每个样本含问题与相关切片 ID）
+     * @param topK    检索截断数量
+     * @return 包含各项指标均值的评估报告
+     */
     public EvalReport evaluate(EvalDataset dataset, int topK) {
         if (topK <= 0) {
             throw new IllegalArgumentException("topK must be > 0, got " + topK);

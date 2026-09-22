@@ -2,6 +2,8 @@ package com.xb.rag.hallucination;
 
 /**
  * 提示词常量 —— 所有 LLM 调用所用的系统/验证提示词模板
+ *
+ * @author ibqy
  */
 public final class PromptConstants {
 

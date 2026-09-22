@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Configuration;
  *
  * 手动创建 RestClient → Transport → ElasticsearchClient 链路，
  * 不使用 Spring Data Elasticsearch 的自动配置，避免版本冲突。
+ *
+ * @author ibqy
  */
 @Configuration
 public class ElasticsearchConfig {

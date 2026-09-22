@@ -21,6 +21,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * 检索消融实验测试 —— 对比向量/BM25/RRF 三路检索效果
+ */
 class RetrievalAblationTest {
 
     @Test

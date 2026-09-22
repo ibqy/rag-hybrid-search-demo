@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
  *
  * 公式：score = Σ 1 / (k + position)，position 为各路线列表中的 1-based 下标，
  * k 为平滑常数（默认 60）。同一路线中同一 chunkId 仅首次出现计分。
+ *
+ * @author ibqy
  */
 @Component
 public class RrfFusion {
@@ -28,6 +30,15 @@ public class RrfFusion {
         this.k = k;
     }
 
+    /**
+     * 执行 RRF 融合：将向量检索和 BM25 两路结果按排名倒数加权求和，
+     * 返回按融合分数降序排列的 topK 结果。
+     *
+     * @param vectorResults 向量检索返回的结果列表
+     * @param bm25Results   BM25 检索返回的结果列表
+     * @param finalTopK     融合后最终返回的结果数
+     * @return 融合排序后的 SearchResult 列表
+     */
     public List<SearchResult> fuse(List<SearchResult> vectorResults,
                                    List<SearchResult> bm25Results,
                                    int finalTopK) {

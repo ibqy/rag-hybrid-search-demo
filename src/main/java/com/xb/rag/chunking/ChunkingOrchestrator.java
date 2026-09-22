@@ -9,6 +9,8 @@ import java.util.Map;
 /**
  * 分块编排器 —— 根据配置选择合适的分块策略，
  * 并对生成的分块进行合法性校验。
+ *
+ * @author ibqy
  */
 public class ChunkingOrchestrator {
 

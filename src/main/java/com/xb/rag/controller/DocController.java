@@ -25,6 +25,8 @@ import java.util.UUID;
  * POST /api/docs/upload   上传并解析文档
  * POST /api/docs/update   增量更新已有文档
  * DELETE /api/docs/{docId} 删除文档
+ *
+ * @author ibqy
  */
 @RestController
 @RequestMapping("/api/docs")
@@ -51,7 +53,11 @@ public class DocController {
     }
 
     /**
-     * 上传并解析文档
+     * 上传并解析文档 —— 接收文件，执行解析→切片→元数据生成流程
+     *
+     * @param file     上传的文档文件（支持 PDF/DOCX/MD）
+     * @param tenantId 租户标识，默认 "default"
+     * @return 包含 docId、文件名、切片数和 MD5 的响应
      */
     @PostMapping("/upload")
     public Mono<DocUploadResponse> upload(@RequestParam("file") MultipartFile file,
@@ -84,7 +90,12 @@ public class DocController {
     }
 
     /**
-     * 增量更新文档（上传新版本）
+     * 增量更新文档 —— 上传新版本，对比 MD5 后仅更新变化部分
+     *
+     * @param file     新版文档文件
+     * @param docId    待更新的文档 ID
+     * @param tenantId 租户标识，默认 "default"
+     * @return 包含 docId、更新状态、切片数和 MD5 的响应
      */
     @PostMapping("/update")
     public Mono<Map<String, Object>> update(@RequestParam("file") MultipartFile file,
