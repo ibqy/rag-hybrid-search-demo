@@ -1,3 +1,18 @@
+<p align="center">
+  <a href="https://ibqy.github.io/rag-hybrid-search-demo/"><img src="https://img.shields.io/badge/在线课件-2F6FEB?style=flat-square" alt="在线课件"></a>
+  <img src="https://img.shields.io/badge/Java-21-2266EE?style=flat-square" alt="Java 21">
+  <img src="https://img.shields.io/badge/Spring_Boot-3.5.16-6DB33F?style=flat-square" alt="Spring Boot 3.5.16">
+  <img src="https://img.shields.io/badge/Spring_AI-1.1.8-6DB33F?style=flat-square" alt="Spring AI 1.1.8">
+  <img src="https://img.shields.io/badge/RRF-Recall@K-8957E5?style=flat-square" alt="RRF 与评测">
+  <img src="https://img.shields.io/github/license/ibqy/rag-hybrid-search-demo?style=flat-square" alt="License">
+  <img src="https://img.shields.io/github/stars/ibqy/rag-hybrid-search-demo?style=flat-square" alt="Stars">
+</p>
+
+> **课程位置** 阶段 4 · 生产级 AI 工程 — 第 1 站
+> [上一站 Agent 编排](https://ibqy.github.io/agent-orchestration-demo/) → **RAG 高阶混合检索** → [下一站 AI 平台](https://ibqy.github.io/ai-platform-demo/) ｜ [完整学习路线](https://ibqy.github.io/curriculum)
+
+---
+
 # RAG 高阶混合检索知识库
 
 **专有名词靠关键词，语义改写靠向量；融合是否有效，用逐查询评测回答。**

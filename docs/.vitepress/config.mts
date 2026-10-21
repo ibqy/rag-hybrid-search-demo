@@ -27,7 +27,8 @@ export default defineConfig({
       { text: '首页', link: '/' },
       { text: '评测实验室', link: '/07-RAG评估体系' },
       { text: '学习路线', link: '/#learning-path' },
-      { text: 'API 与边界', link: '/08-API接口文档' }
+      { text: 'API 与边界', link: '/08-API接口文档' },
+      { text: '学习路径', link: 'https://ibqy.github.io/curriculum' }
     ],
     sidebar: [
       {
